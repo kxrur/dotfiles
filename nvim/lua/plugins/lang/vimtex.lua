@@ -14,6 +14,8 @@ return {
     vim.g.vimtex_quickfix_method = vim.fn.executable("pplatex") == 1 and "pplatex" or "latexlog"
 
     --ensure that the pdf viewer is zathura
-    vim.g.vimtex_view_method = "zathura"
+    --vim.g.vimtex_view_method = "zathura"
+    --moved to the options.lua file -
+    --must load before the plugin
   end,
 }
