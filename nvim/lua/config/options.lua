@@ -13,7 +13,7 @@ opt.sidescrolloff = 4
 
 vim.g.vimtex_view_method = "zathura"
 
-opt.shell = "fish"
+--opt.shell = "fish"
 
 -- notify
 
@@ -26,3 +26,7 @@ vim.notify = function(msg, ...)
   end
   return require("notify")(msg, ...)
 end
+
+vim.filetype.add({
+  pattern = { [".*/hypr/.*%.conf"] = "hyprlang" },
+})
