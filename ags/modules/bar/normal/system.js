@@ -79,6 +79,32 @@ const UtilButton = ({ name, icon, onClicked }) =>
     label: `${icon}`,
   });
 
+const Utilities = () =>
+  Box({
+    hpack: "center",
+    className: "spacing-h-4",
+    children: [
+      // UtilButton({
+      //     name: 'Screen snip', icon: 'screenshot_region', onClicked: () => {
+      //         Utils.execAsync(`${App.configDir}/scripts/grimblast.sh copy area`)
+      //             .catch(print)
+      //     }
+      // }),
+      UtilButton({
+        name: "Color picker",
+        icon: "colorize",
+        onClicked: () => {
+          Utils.execAsync(["hyprpicker", "-a"]).catch(print);
+        },
+      }),
+      // UtilButton({
+      //     name: 'Toggle on-screen keyboard', icon: 'keyboard', onClicked: () => {
+      //         toggleWindowOnAllMonitors('osk');
+      //     }
+      // }),
+    ],
+  });
+
 const BarBattery = () =>
   Box({
     className: "spacing-h-4 bar-batt-txt",
