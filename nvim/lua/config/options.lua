@@ -1,7 +1,6 @@
 -- Options are automatically loaded before lazy.nvim startup
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 -- Add any additional options here
---
 local opt = vim.opt
 opt.scrolloff = 15 -- Lines of context
 opt.textwidth = 80
@@ -13,7 +12,7 @@ opt.sidescrolloff = 4
 
 vim.g.vimtex_view_method = "zathura"
 
---opt.shell = "fish"
+opt.shell = "fish"
 
 -- notify
 

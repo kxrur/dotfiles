@@ -172,6 +172,34 @@ export const ModuleInvertColors = async (props = {}) => {
     return null;
   };
 }
+export const ModuleMonitor = async (props = {}) => {
+  try {
+    const Hyprland = (await import('resource:///com/github/Aylur/ags/service/hyprland.js')).default;
+    return Widget.Button({
+      className: 'txt-small sidebar-iconbutton',
+      tooltipText: 'Toggle Laptop Monitor',
+      onClicked: (button) => {
+        Utils.execAsync(`hyprctl monitors `).then((result) => {
+          const monitors = result;
+          execAsync(['bash', '-c', `hyprctl notify -1 10000 "rgb(ff1ea3)" "Hello everyone!"`]).catch(print);
+          execAsync(['bash', '-c', `hyprctl dispatch dpms toggle eDP-1`]).catch(print);
+          button.toggleClassName('sidebar-button-active');
+        })
+      },
+      child: MaterialIcon('monitor', 'norm'),
+      setup: (button) => {
+        setupCursorHover
+        getMonitors().then((monitors) => {
+          print(monitors)
+        }).catch(err => print(err))
+      },
+      ...props,
+    })
+  }
+  catch {
+    return null;
+  };
+}
 
 export const ModuleRawInput = async (props = {}) => {
   try {
@@ -202,11 +230,7 @@ export const ModuleRawInput = async (props = {}) => {
         Hyprland.messageAsync('j/getoption input:accel_profile')
           .then((output) => {
             const value = JSON.parse(output)["str"].trim();
-            if (value === "flat") {
-              button.toggleClassName('sidebar-button-active', true);
-            } else {
-              button.toggleClassName('sidebar-button-active', false);
-            }
+            button.toggleClassName('sidebar-button-active', value === "flat");
           }).catch(print);
       },
       ...props,
@@ -278,3 +302,50 @@ export const ModulePowerIcon = (props = {}) => Widget.Button({
     setupCursorHover(button);
   }
 })
+
+
+const getMonitors = async () => {
+
+  Utils.execAsync(`hyprctl monitors `).then((result) => {
+    const lines = result.split('\n');
+    const monitors = [];
+
+    let monitor = {};
+    lines.forEach(line => {
+      const trimmed = line.trim();
+
+      if (trimmed.startsWith("Monitor")) {
+        if (Object.keys(monitor).length > 0) {
+          monitors.push(monitor);
+        }
+
+        // Capture both the monitor name and ID
+        const monitorMatch = trimmed.match(/Monitor (\S+) \(ID (\d+)\)/);
+        if (monitorMatch) {
+          monitor = {
+            name: monitorMatch[1],
+            id: monitorMatch[2]
+          };
+        }
+      } else if (trimmed.startsWith("description:")) {
+        monitor.description = trimmed.split(":")[1].trim();
+      } else if (trimmed.startsWith("make:")) {
+        monitor.make = trimmed.split(":")[1].trim();
+      } else if (trimmed.startsWith("model:")) {
+        monitor.model = trimmed.split(":")[1].trim();
+      } else if (trimmed.startsWith("active workspace:")) {
+        monitor.activeWorkspace = trimmed.split(":")[1].trim();
+      } else if (trimmed.startsWith("scale:")) {
+        monitor.scale = parseFloat(trimmed.split(":")[1].trim());
+      } else if (trimmed.startsWith("transform:")) {
+        monitor.transform = parseInt(trimmed.split(":")[1].trim(), 10);
+      }
+      if (Object.keys(monitor).length > 0) {
+        monitors.push(monitor);
+      }
+    });
+    print(monitor)
+    return monitors
+  }).catch(err => print(err))
+  return false
+}
