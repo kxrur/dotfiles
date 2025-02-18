@@ -7,7 +7,7 @@ CONFIG_DIR="$XDG_CONFIG_HOME/ags"
 CACHE_DIR="$XDG_CACHE_HOME/ags"
 STATE_DIR="$XDG_STATE_HOME/ags"
 
-term_alpha=87 #Set this to < 100 make all your terminals transparent
+term_alpha=100 #Set this to < 100 make all your terminals transparent
 # sleep 0 # idk i wanted some delay or colors dont get applied properly
 if [ ! -d "$CACHE_DIR"/user/generated ]; then
   mkdir -p "$CACHE_DIR"/user/generated
@@ -149,7 +149,9 @@ apply_gtk() { # Using gradience-cli
   done
 
   mkdir -p "$XDG_CONFIG_HOME/presets" # create gradience presets folder
+  source $(eval echo $ILLOGICAL_IMPULSE_VIRTUAL_ENV)/bin/activate
   gradience-cli apply -p "$CACHE_DIR"/user/generated/gradience/preset.json --gtk both
+  deactivate
 
   # And set GTK theme manually as Gradience defaults to light adw-gtk3
   # (which is unreadable when broken when you use dark mode)
@@ -162,8 +164,13 @@ apply_gtk() { # Using gradience-cli
 }
 
 apply_ags() {
-  ags run-js "handleStyles(false);"
-  ags run-js 'openColorScheme.value = true; Utils.timeout(2000, () => openColorScheme.value = false);'
+  agsv1 run-js "handleStyles(false);"
+  agsv1 run-js 'openColorScheme.value = true; Utils.timeout(2000, () => openColorScheme.value = false);'
+}
+
+apply_qt() {
+  sh "$CONFIG_DIR/scripts/kvantum/materialQT.sh"          # generate kvantum theme
+  python "$CONFIG_DIR/scripts/kvantum/changeAdwColors.py" # apply config colors
 }
 
 colornames=$(cat $STATE_DIR/scss/_material.scss | cut -d: -f1)
@@ -177,5 +184,6 @@ apply_hyprland &
 apply_hyprlock &
 apply_lightdark &
 apply_gtk &
+apply_qt &
 apply_fuzzel &
 apply_term &

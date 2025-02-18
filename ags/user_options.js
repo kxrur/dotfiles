@@ -4,6 +4,18 @@
 //   options listed in this file will override the default ones in the above file
 
 const userConfigOptions = {
-}
+  sidebar: {
+    quickToggles: {
+      order: [
+        "wifi",
+        "bluetooth",
+        "rawinput",
+        "gamemode",
+        "idleinhibitor",
+        "cloudflarewarp",
+      ],
+    },
+  },
+};
 
 export default userConfigOptions;

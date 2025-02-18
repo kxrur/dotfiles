@@ -1,5 +1,5 @@
-import Widget from 'resource:///com/github/Aylur/ags/widget.js';
-import * as Utils from 'resource:///com/github/Aylur/ags/utils.js';
+import Widget from "resource:///com/github/Aylur/ags/widget.js";
+import * as Utils from "resource:///com/github/Aylur/ags/utils.js";
 const { execAsync, exec } = Utils;
 const { Box, EventBox } = Widget;
 import {
@@ -13,7 +13,8 @@ import {
   ModuleSettingsIcon,
   ModulePowerIcon,
   ModuleRawInput,
-  ModuleCloudflareWarp
+  ModuleGameMode,
+  ModuleCloudflareWarp,
 } from "./quicktoggles.js";
 import ModuleNotificationList from "./centermodules/notificationlist.js";
 import ModuleAudioControls from "./centermodules/audiocontrols.js";
@@ -21,57 +22,78 @@ import ModuleWifiNetworks from "./centermodules/wifinetworks.js";
 import ModuleBluetooth from "./centermodules/bluetooth.js";
 import ModuleConfigure from "./centermodules/configure.js";
 import { ModuleCalendar } from "./calendar.js";
-import { getDistroIcon } from '../.miscutils/system.js';
-import { MaterialIcon } from '../.commonwidgets/materialicon.js';
-import { ExpandingIconTabContainer } from '../.commonwidgets/tabcontainer.js';
-import { checkKeybind } from '../.widgetutils/keybind.js';
+import { getDistroIcon } from "../.miscutils/system.js";
+import { MaterialIcon } from "../.commonwidgets/materialicon.js";
+import { ExpandingIconTabContainer } from "../.commonwidgets/tabcontainer.js";
+import { checkKeybind } from "../.widgetutils/keybind.js";
+
+const QUICK_TOGGLES = {
+  wifi: ToggleIconWifi(),
+  bluetooth: ToggleIconBluetooth(),
+  rawinput: await ModuleRawInput(),
+  touchpad: await HyprToggleIcon(
+    "touchpad_mouse",
+    "No touchpad while typing",
+    "input:touchpad:disable_while_typing",
+    {},
+  ),
+  nightlight: await ModuleNightLight(),
+  invertcolors: await ModuleInvertColors(),
+  gamemode: await ModuleGameMode(),
+  idleinhibitor: ModuleIdleInhibitor(),
+  cloudflarewarp: await ModuleCloudflareWarp(),
+};
 
 const centerWidgets = [
   {
-    name: getString('Audio controls'),
-    materialIcon: 'volume_up',
+    name: getString("Audio controls"),
+    materialIcon: "volume_up",
     contentWidget: ModuleAudioControls,
   },
   {
-    name: getString('Notifications'),
-    materialIcon: 'notifications',
+    name: getString("Notifications"),
+    materialIcon: "notifications",
     contentWidget: ModuleNotificationList,
   },
   {
-    name: getString('Bluetooth'),
-    materialIcon: 'bluetooth',
+    name: getString("Bluetooth"),
+    materialIcon: "bluetooth",
     contentWidget: ModuleBluetooth,
   },
   {
-    name: getString('Wifi networks'),
-    materialIcon: 'wifi',
+    name: getString("Wifi networks"),
+    materialIcon: "wifi",
     contentWidget: ModuleWifiNetworks,
-    onFocus: () => execAsync('nmcli dev wifi list').catch(print),
+    onFocus: () => execAsync("nmcli dev wifi list").catch(print),
   },
   {
-    name: getString('Live config'),
-    materialIcon: 'tune',
+    name: getString("Live config"),
+    materialIcon: "tune",
     contentWidget: ModuleConfigure,
   },
 ];
 
 const timeRow = Box({
-  className: 'spacing-h-10 sidebar-group-invisible-morehorizpad',
+  className: "spacing-h-10 sidebar-group-invisible-morehorizpad",
   children: [
     Widget.Icon({
       icon: getDistroIcon(),
-      className: 'txt txt-larger',
+      className: "txt txt-larger",
     }),
     Widget.Label({
-      hpack: 'center',
-      className: 'txt-small txt',
+      hpack: "center",
+      className: "txt-small txt",
       setup: (self) => {
         const getUptime = async () => {
           try {
-            await execAsync(['bash', '-c', 'uptime -p']);
-            return execAsync(['bash', '-c', `uptime -p | sed -e 's/...//;s/ day\\| days/d/;s/ hour\\| hours/h/;s/ minute\\| minutes/m/;s/,[^,]*//2'`]);
+            await execAsync(["bash", "-c", "uptime -p"]);
+            return execAsync([
+              "bash",
+              "-c",
+              `uptime -p | sed -e 's/...//;s/ day\\| days/d/;s/ hour\\| hours/h/;s/ minute\\| minutes/m/;s/,[^,]*//2'`,
+            ]);
           } catch {
-            return execAsync(['bash', '-c', 'uptime']).then(output => {
+            return execAsync(["bash", "-c", "uptime"]).then((output) => {
               const uptimeRegex = /up\s+((\d+)\s+days?,\s+)?((\d+):(\d+)),/;
               const matches = uptimeRegex.exec(output);
 
@@ -80,7 +102,7 @@ const timeRow = Box({
                 const hours = matches[4] ? parseInt(matches[4]) : 0;
                 const minutes = matches[5] ? parseInt(matches[5]) : 0;
 
-                let formattedUptime = '';
+                let formattedUptime = "";
 
                 if (days > 0) {
                   formattedUptime += `${days} d `;
@@ -92,97 +114,88 @@ const timeRow = Box({
 
                 return formattedUptime;
               } else {
-                throw new Error('Failed to parse uptime output');
+                throw new Error("Failed to parse uptime output");
               }
             });
           }
         };
 
-        self.poll(5000, label => {
-          getUptime().then(upTimeString => {
-            label.label = `${getString("Uptime:"
-            )} ${upTimeString}`;
-          }).catch(err => {
-            console.error(`Failed to fetch uptime: ${err}`);
-          });
+        self.poll(5000, (label) => {
+          getUptime()
+            .then((upTimeString) => {
+              label.label = `${getString("Uptime:")} ${upTimeString}`;
+            })
+            .catch((err) => {
+              console.error(`Failed to fetch uptime: ${err}`);
+            });
         });
       },
     }),
     Widget.Box({ hexpand: true }),
-    ModuleReloadIcon({ hpack: 'end' }),
+    ModuleReloadIcon({ hpack: "end" }),
     // ModuleSettingsIcon({ hpack: 'end' }), // Button does work, gnome-control-center is kinda broken
-    ModulePowerIcon({ hpack: 'end' }),
-  ]
+    ModulePowerIcon({ hpack: "end" }),
+  ],
 });
 
 const togglesBox = Widget.Box({
-  hpack: 'center',
-  className: 'sidebar-togglesbox spacing-h-5',
-  children: [
-    ToggleIconWifi(),
-    ToggleIconBluetooth(),
-    await ModuleRawInput(),
-    // await HyprToggleIcon('touchpad_mouse', 'No touchpad while typing', 'input:touchpad:disable_while_typing', {}),
-    // await ModuleNightLight(),
-    await ModuleInvertColors(),
-    ModuleIdleInhibitor(),
-    await ModuleCloudflareWarp(),
-  ]
-})
+  hpack: "center",
+  className: "sidebar-togglesbox spacing-h-5",
+  children: userOptions.sidebar.quickToggles.order.map(
+    (toggle) => QUICK_TOGGLES[toggle],
+  ),
+});
 
 export const sidebarOptionsStack = ExpandingIconTabContainer({
-  tabsHpack: 'center',
-  tabSwitcherClassName: 'sidebar-icontabswitcher',
+  tabsHpack: "center",
+  tabSwitcherClassName: "sidebar-icontabswitcher",
   icons: centerWidgets.map((api) => api.materialIcon),
   names: centerWidgets.map((api) => api.name),
   children: centerWidgets.map((api) => api.contentWidget()),
   onChange: (self, id) => {
     self.shown = centerWidgets[id].name;
     if (centerWidgets[id].onFocus) centerWidgets[id].onFocus();
-  }
+  },
 });
 
-export default () => Box({
-  vexpand: true,
-  hexpand: true,
-  css: 'min-width: 2px;',
-  children: [
-    EventBox({
-      onPrimaryClick: () => App.closeWindow('sideright'),
-      onSecondaryClick: () => App.closeWindow('sideright'),
-      onMiddleClick: () => App.closeWindow('sideright'),
-    }),
-    Box({
-      vertical: true,
-      vexpand: true,
-      className: 'sidebar-right spacing-v-15',
-      children: [
-        Box({
-          vertical: true,
-          className: 'spacing-v-5',
-          children: [
-            timeRow,
-            togglesBox,
-          ]
-        }),
-        Box({
-          className: 'sidebar-group',
-          children: [
-            sidebarOptionsStack,
-          ],
-        }),
-        ModuleCalendar(),
-      ]
-    }),
-  ],
-  setup: (self) => self
-    .on('key-press-event', (widget, event) => { // Handle keybinds
-      if (checkKeybind(event, userOptions.keybinds.sidebar.options.nextTab)) {
-        sidebarOptionsStack.nextTab();
-      }
-      else if (checkKeybind(event, userOptions.keybinds.sidebar.options.prevTab)) {
-        sidebarOptionsStack.prevTab();
-      }
-    })
-  ,
-});
+export default () =>
+  Box({
+    vexpand: true,
+    hexpand: true,
+    css: "min-width: 2px;",
+    children: [
+      EventBox({
+        onPrimaryClick: () => App.closeWindow("sideright"),
+        onSecondaryClick: () => App.closeWindow("sideright"),
+        onMiddleClick: () => App.closeWindow("sideright"),
+      }),
+      Box({
+        vertical: true,
+        vexpand: true,
+        className: "sidebar-right spacing-v-15",
+        children: [
+          Box({
+            vertical: true,
+            className: "spacing-v-5",
+            children: [timeRow, togglesBox],
+          }),
+          Box({
+            className: "sidebar-group",
+            children: [sidebarOptionsStack],
+          }),
+          ModuleCalendar(),
+        ],
+      }),
+    ],
+    setup: (self) =>
+      self.on("key-press-event", (widget, event) => {
+        // Handle keybinds
+        if (checkKeybind(event, userOptions.keybinds.sidebar.options.nextTab)) {
+          sidebarOptionsStack.nextTab();
+        } else if (
+          checkKeybind(event, userOptions.keybinds.sidebar.options.prevTab)
+        ) {
+          sidebarOptionsStack.prevTab();
+        }
+      }),
+  });
