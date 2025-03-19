@@ -26,11 +26,28 @@ return {
     priority = 1000,
   },
   { "catppuccin/nvim", name = "catppuccin" },
+  { "olimorris/onedarkpro.nvim" },
+  { "savq/melange-nvim" },
+  {
+    "ribru17/bamboo.nvim",
+    opts = {
+      style = "vulgaris",
+    },
+    -- FIXME: changing color doesn't work
+    colors = {
+      normal_bg = "#a2b382",
+      green = "#00ffaa", -- redefine an existing color
+    },
+    highlights = {
+      ["@Normal"] = { bg = "$normal_bg" },
+      ["@keyword"] = { fg = "$green" },
+    },
+  },
   -- Configure LazyVim to load gruvbox
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "catppuccin-macchiato",
+      colorscheme = "bamboo",
     },
   },
 }

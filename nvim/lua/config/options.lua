@@ -30,3 +30,4 @@ vim.g.vimtex_view_method = "zathura"
 vim.filetype.add({
   pattern = { [".*/hypr/.*%.conf"] = "hyprlang" },
 })
+vim.keymap.set("n", "x", '"_x', { noremap = true, silent = true })
