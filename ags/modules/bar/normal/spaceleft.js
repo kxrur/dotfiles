@@ -21,24 +21,22 @@ const WindowTitle = async () => {
             truncate: "end",
             maxWidthChars: 1, // Doesn't matter, just needs to be non negative
             className: "bar-wintitle-txt",
-            setup: (self) =>
+            setup: (self) => {
               self.hook(Hyprland.active.client, (label) => {
+                label.label =
+                  Hyprland.active.client.class.length === 0
+                    ? `Workspace ${Hyprland.active.workspace.id}`
+                    : Hyprland.active.client.class;
+              });
+              self.hook(Hyprland.active.workspace, (label) => {
                 // Hyprland.active.client
                 label.label =
                   Hyprland.active.client.class.length === 0
                     ? `Workspace ${Hyprland.active.workspace.id}`
                     : Hyprland.active.client.class;
-              }),
+              });
+            },
           }),
-          // Widget.Label({
-          //     xalign: 0,
-          //     truncate: 'end',
-          //     maxWidthChars: 1, // Doesn't matter, just needs to be non negative
-          //     className: 'txt-smallie bar-wintitle-txt',
-          //     setup: (self) => self.hook(Hyprland.active.client, label => { // Hyprland.active.client
-          //         label.label = Hyprland.active.client.title.length === 0 ? `Workspace ${Hyprland.active.workspace.id}` : Hyprland.active.client.title;
-          //     }),
-          // })
         ],
       }),
     });
